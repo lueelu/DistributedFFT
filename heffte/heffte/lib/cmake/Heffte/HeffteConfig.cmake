@@ -1,0 +1,135 @@
+
+
+####### Expanded from @PACKAGE_INIT@ by configure_package_config_file() #######
+####### Any changes to this file will be overwritten by the next CMake run ####
+####### The input file was HeffteConfig.cmake                            ########
+
+get_filename_component(PACKAGE_PREFIX_DIR "${CMAKE_CURRENT_LIST_DIR}/../../" ABSOLUTE)
+
+macro(set_and_check _var _file)
+  set(${_var} "${_file}")
+  if(NOT EXISTS "${_file}")
+    message(FATAL_ERROR "File or directory ${_file} referenced by variable ${_var} does not exist !")
+  endif()
+endmacro()
+
+macro(check_required_components _NAME)
+  foreach(comp ${${_NAME}_FIND_COMPONENTS})
+    if(NOT ${_NAME}_${comp}_FOUND)
+      if(${_NAME}_FIND_REQUIRED_${comp})
+        set(${_NAME}_FOUND FALSE)
+      endif()
+    endif()
+  endforeach()
+endmacro()
+
+####################################################################################
+
+if (TARGET Heffte::Heffte OR Heffte_FIND_QUIETLY)
+    # respect the Heffte_FIND_QUIETLY and don't show outputs on second search
+    set(Heffte_be_silent ON)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/HeffteTargets.cmake")
+
+if (OFF AND NOT TARGET Heffte::FFTW)
+    add_library(Heffte::FFTW INTERFACE IMPORTED GLOBAL)
+    target_link_libraries(Heffte::FFTW INTERFACE )
+    set_target_properties(Heffte::FFTW PROPERTIES INTERFACE_INCLUDE_DIRECTORIES )
+endif()
+
+if (OFF AND NOT TARGET Heffte::MKL)
+    add_library(Heffte::MKL INTERFACE IMPORTED GLOBAL)
+    target_link_libraries(Heffte::MKL INTERFACE )
+    set_target_properties(Heffte::MKL PROPERTIES INTERFACE_INCLUDE_DIRECTORIES )
+endif()
+
+if (ON AND NOT TARGET roc::rocfft)
+    if (NOT "/opt/rocm" STREQUAL "")
+        list(APPEND CMAKE_PREFIX_PATH "/opt/rocm")
+    endif()
+    find_package(rocfft REQUIRED)
+endif()
+
+if (OFF AND NOT TARGET Heffte::OneMKL)
+    add_library(Heffte::OneMKL INTERFACE IMPORTED GLOBAL)
+    target_link_libraries(Heffte::OneMKL INTERFACE )
+endif()
+
+if (OFF)
+    if (NOT CUDA_TOOLKIT_ROOT_DIR AND NOT "" STREQUAL "")
+        set(CUDA_TOOLKIT_ROOT_DIR )
+    endif()
+    find_package(CUDA REQUIRED)
+endif()
+
+if (OFF AND NOT TARGET Heffte::MAGMA)
+    add_library(Heffte::MAGMA INTERFACE IMPORTED GLOBAL)
+    target_link_libraries(Heffte::MAGMA INTERFACE )
+    set_target_properties(Heffte::MAGMA PROPERTIES INTERFACE_INCLUDE_DIRECTORIES )
+endif()
+
+if (OFF)
+    get_property(heffte_project_languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+    if (NOT Fortran IN_LIST heffte_project_languages)
+        if (NOT CMAKE_Fortran_COMPILER)
+            set(CMAKE_Fortran_COMPILER )
+        endif()
+        enable_language(Fortran)
+    endif()
+    unset(heffte_project_languages)
+    set(Heffte_Fortran_FOUND  "ON")
+    if (NOT TARGET Heffte::Fortran)
+        add_library(Heffte::Fortran INTERFACE IMPORTED GLOBAL)
+        foreach(heffte_backend fftw cufft rocfft)
+            if (TARGET Heffte::heffte_${heffte_backend})
+                target_link_libraries(Heffte::Fortran INTERFACE Heffte::heffte_${heffte_backend})
+            endif()
+        endforeach()
+        unset(heffte_backend)
+    endif()
+endif()
+
+if (NOT TARGET MPI::MPI_CXX)
+    if (NOT MPI_CXX_COMPILER)
+        set(MPI_CXX_COMPILER )
+    endif()
+    find_package(MPI REQUIRED)
+endif()
+
+if (OFF)
+    set(Heffte_PYTHON_FOUND  "ON")
+    set(Heffte_PYTHONPATH "/home/lulu/binbin/heffte-new/heffte-lib/share/heffte/python")
+endif()
+
+if ("ON")
+    set(Heffte_SHARED_FOUND "ON")
+else()
+    set(Heffte_STATIC_FOUND "ON")
+endif()
+set(Heffte_FFTW_FOUND    "OFF")
+set(Heffte_MKL_FOUND     "OFF")
+set(Heffte_CUDA_FOUND    "OFF")
+set(Heffte_ROCM_FOUND    "ON")
+set(Heffte_ONEAPI_FOUND  "OFF")
+set(Heffte_INTRINSICS_FOUND  "")
+if ("")
+    set(Heffte_GPUAWARE_FOUND "OFF")
+else()
+    set(Heffte_GPUAWARE_FOUND "ON")
+endif()
+
+check_required_components(Heffte)
+
+if (NOT Heffte_be_silent AND (Heffte_FOUND OR "${Heffte_FOUND}" STREQUAL ""))
+    # oddly enough, Heffte_FOUND is empty when there is no error
+    message(STATUS "Found Heffte: /home/lulu/binbin/heffte-new/heffte-lib (found version 2.1.0)")
+    set(Heffte_ALL_MODULES "")
+    foreach(_heffte_mod SHARED STATIC FFTW MKL CUDA ROCM ONEAPI INTRINSICS GPUAWARE PYTHON Fortran)
+        if (Heffte_${_heffte_mod}_FOUND)
+            set(Heffte_ALL_MODULES "${Heffte_ALL_MODULES} ${_heffte_mod}")
+        endif()
+    endforeach()
+    unset(_heffte_mod)
+    message(STATUS "Found Heffte modules: ${Heffte_ALL_MODULES}")
+endif()

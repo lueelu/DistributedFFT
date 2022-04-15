@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/speed3d_r2c.dir/speed3d_r2c.o -o speed3d_r2c  -lheffte 

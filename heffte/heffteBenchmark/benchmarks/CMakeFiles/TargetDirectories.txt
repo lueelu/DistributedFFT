@@ -1,0 +1,4 @@
+/home/lulu/binbin/heffte-new/heffte/benchmarks/CMakeFiles/edit_cache.dir
+/home/lulu/binbin/heffte-new/heffte/benchmarks/CMakeFiles/rebuild_cache.dir
+/home/lulu/binbin/heffte-new/heffte/benchmarks/CMakeFiles/speed3d_r2c.dir
+/home/lulu/binbin/heffte-new/heffte/benchmarks/CMakeFiles/speed3d_c2c.dir
