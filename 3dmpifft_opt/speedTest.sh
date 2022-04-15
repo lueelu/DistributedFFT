@@ -1,5 +1,5 @@
 #!/bin/bash
-MPI_DIR=$HOME/binbin/new-library/ompi
+MPI_DIR=$HOME/ompi
 hostfile = "nodelist"
 
 # single nodes (comment if not needed)

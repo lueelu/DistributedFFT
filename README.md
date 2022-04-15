@@ -3,6 +3,11 @@
 ## About
 This library is being developed to support highly efficient distributed FFT computation on multicore CPU and GPU architectures. The evaluation section in the manuscript is all included in this library.
 
+## DistributeFFT for docker (quick start)
+Please refer [distributedfft-docker](https://hub.docker.com/r/luluteam/distributedfft).
+
+Dependencies and libraries have been installed in the docker image, but the increase of commnuication overhead in the contained leads to inevitable performance loss. 
+
 ## Structure
 - templateFFT  (templated-based FFT library on one single GPU)
 - 3dmpifft_roc (optimozed distributed FFT; backened: rocFFT)
