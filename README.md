@@ -1,7 +1,7 @@
 # A Highly Efficient GPU Framework for Fast Fourier Transform across Mixed Nodes
 
 ## About
-This library is being developed to support highly efficient distributed FFT computation on multicore CPU and GPU architectures. The evaluation section in the manuscript is all included in this library.
+This library is being developed to support highly efficient distributed FFT computation on multicore CPU and GPU architectures.
 
 ## DistributeFFT for docker (quick start)
 Please refer [distributedfft-docker](https://hub.docker.com/r/luluteam/distributedfft).
@@ -15,12 +15,12 @@ Dependencies and libraries have been installed in the docker image, but the incr
 - heffte       (current state-of-art distributed FFT library heffte)
 
 
-## Build requirements:
+## Build environments:
 - Compiler (GCC and hipcc)
-- CMake (>v3.0)
-- ROCm platform (>v4.2)
-- rocfft (>v4.2)
-- OpenMPI (>v4.0.0) and UCX (>1.11.0)
+- CMake (v3.0)
+- ROCm platform (v4.2)
+- rocfft (v4.2)
+- OpenMPI (v4.0.0) and UCX (v1.11.0)
 
 ## Getting Start Guide
 1. Compile and run batched ffts on one single GPU:
