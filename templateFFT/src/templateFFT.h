@@ -86,10 +86,10 @@ typedef struct {
 	uint64_t size[3]; 
 
 	hipDevice_t* device;
-	uint64_t* bufferSize;//array of buffers sizes in bytes
-	uint64_t* inputBufferSize;//array of input buffers sizes in bytes, if isInputFormatted is enabled
-	uint64_t* outputBufferSize;//array of output buffers sizes in bytes, if isOutputFormatted is enabled
-	uint64_t* kernelSize;//array of kernel buffers sizes in bytes, if performConvolution is enabled
+	uint64_t* bufferSize;
+	uint64_t* inputBufferSize;
+	uint64_t* outputBufferSize;
+	uint64_t* kernelSize;
 	uint64_t coalescedMemory;
 	uint64_t bufferStride[3];
 	uint64_t inputBufferStride[3];
@@ -107,12 +107,12 @@ typedef struct {
 	uint64_t normalize;
 
 	uint64_t disableReorderFourStep;
-	uint64_t aimThreads;//aim at this many threads per block. Default 128
-	uint64_t numSharedBanks;//how many banks shared memory has. Default 32
-	uint64_t inverseReturnToInputBuffer;//return data to the input buffer in inverse transform (0 - off, 1 - on). isInputFormatted must be enabled
-	uint64_t numberBatches;// N - used to perform multiple batches of initial data. Default 1
-	uint64_t useUint64;//use 64-bit addressing mode in generated kernels
-	uint64_t registerBoost;
+	uint64_t aimThreads;
+	uint64_t numSharedBanks;
+	uint64_t inverseReturnToInputBuffer;
+	uint64_t numberBatches;
+	uint64_t useUint64;
+	uint64_t regAd;
 	uint64_t doublePrecision; 
 	uint64_t useLUT; 
 	uint64_t reorderFourStep;
@@ -121,45 +121,31 @@ typedef struct {
 	uint64_t maxComputeWorkGroupCount[3];
 	uint64_t maxComputeWorkGroupSize[3]; 
 	uint64_t maxThreadsNum; 
-	uint64_t sharedMemorySizeStatic; //available for  allocation shared memory size, in bytes
-	uint64_t sharedMemorySize; //available for allocation shared memory size, in bytes
-	uint64_t sharedMemorySizePow2; //power of 2 which is less or equal to sharedMemorySize, in bytes
-	uint64_t warpSize; //number of threads per warp/wavefront.
-	uint64_t halfThreads;//Intel fix
-	uint64_t allocateTempBuffer; //buffer allocated by app automatically if needed to reorder Four step algorithm. Parameter to check if it has been allocated
-	int64_t maxCodeLength; //specify how big can be buffer used for code generation (in char). Default 1000000 chars.
-	int64_t maxTempLength; //specify how big can be buffer used for intermediate string sprintfs be (in char). Default 5000 chars. If code segfaults for some reason - try increasing this number.
+	uint64_t sharedMemorySizeStatic; 
+	uint64_t sharedMemorySize;
+	uint64_t sharedMemorySizePow2; 
+	uint64_t warpSize; 
+	uint64_t halfThreads;
+	uint64_t allocateTempBuffer; 
+	int64_t maxCodeLength; 
+	int64_t maxTempLength; 
 } FFTConfiguration;
 
 
 typedef struct {
 	uint64_t size[3];
 	uint64_t localSize[3];
-	uint64_t fftDim;
+	uint64_t dim;
 	uint64_t inverse;
 	uint64_t actualInverse;
-	uint64_t zeropad[2];
 	uint64_t axis_id;
 	uint64_t axis_upload_id;
-	uint64_t registers_per_thread;
-	uint64_t registers_per_thread_per_radix[14];
-	uint64_t min_registers_per_thread;
+	uint64_t threadRegister;
+	uint64_t threadRadixRegister[14];
+	uint64_t threadRegisterMin;
 	uint64_t readToRegisters;
 	uint64_t writeFromRegisters;
 	uint64_t LUT;
-	uint64_t performR2C;
-	uint64_t performR2CmultiUpload;
-	uint64_t performDCT;
-	uint64_t frequencyZeropadding;
-	uint64_t performZeropaddingFull[3]; 
-	uint64_t performZeropaddingInput[3]; 
-	uint64_t performZeropaddingOutput[3]; 
-	uint64_t fft_zeropad_left_full[3];
-	uint64_t fft_zeropad_left_read[3];
-	uint64_t fft_zeropad_left_write[3];
-	uint64_t fft_zeropad_right_full[3];
-	uint64_t fft_zeropad_right_read[3];
-	uint64_t fft_zeropad_right_write[3];
 	uint64_t inputStride[5];
 	uint64_t outputStride[5];
 	uint64_t fft_dim_full;
@@ -178,7 +164,6 @@ typedef struct {
 	uint64_t outputBufferBlockSize;
 	uint64_t kernelBlockNum;
 	uint64_t kernelBlockSize;
-	uint64_t numCoordinates;
 	uint64_t matrixConvolution; 
 	uint64_t numBatches;
 	uint64_t numKernels;
@@ -190,20 +175,18 @@ typedef struct {
 	uint64_t maxStageSumLUT;
 	uint64_t unroll;
 	uint64_t convolutionStep;
-	uint64_t symmetricKernel;
 	uint64_t supportAxis;
-	uint64_t cacheShuffle;
-	uint64_t registerBoost;
+	uint64_t regAd;
 	uint64_t warpSize;
 	uint64_t numSharedBanks;
-	uint64_t resolveBankConflictFirstStages;
-	uint64_t sharedStrideBankConflictFirstStages;
-	uint64_t sharedStrideReadWriteConflict;
+	uint64_t conflictStages;
+	uint64_t conflictStride;
+	uint64_t conflictShared;
 	uint64_t maxSharedStride;
 	uint64_t axisSwapped;
 	uint64_t mergeSequencesR2C;
 	uint64_t numBuffersBound[4];
-	uint64_t performBufferSetUpdate;
+	uint64_t bufferUpdate;
 	uint64_t useUint64;
 	char** regIDs;
 	char* disableThreadsStart;
@@ -238,27 +221,27 @@ typedef struct {
 	int64_t currentLen;
 	int64_t maxCodeLength;
 	int64_t maxTempLength;
-} FFTSpecializationConstantsLayout;
+} FFTLayout;
 
 typedef struct {
 	uint32_t coordinate;
 	uint32_t batch;
 	uint32_t workGroupShift[3];
-} FFTPushConstantsLayoutUint32;
+} FFTLayoutUint32;
 typedef struct {
 	uint64_t coordinate;
 	uint64_t batch;
 	uint64_t workGroupShift[3];
-} FFTPushConstantsLayoutUint64;
+} FFTLayoutUint64;
 
 
 typedef struct {
 	uint64_t numBindings;
 	uint64_t axisBlock[4];
 	uint64_t groupedBatch;
-	FFTSpecializationConstantsLayout specializationConstants;
-	FFTPushConstantsLayoutUint32 pushConstantsUint32;
-	FFTPushConstantsLayoutUint64 pushConstants;
+	FFTLayout layout;
+	FFTLayoutUint32 layoutUnit32;
+	FFTLayoutUint64 layoutUnit64;
 	uint64_t updatePushConstants;
 
 	void** inputBuffer;
@@ -299,64 +282,60 @@ typedef struct {
 	FFTPlan* localFFTPlan_inverse; //additional inverse plan
 } FFTApplication;
 
- FFTResult FFTCheckUpdateBufferSet(FFTApplication* app, FFTAxis* axis, uint64_t planStage, FFTLaunchParams* launchParams);
- FFTResult FFTUpdateBufferSet(FFTApplication* app, FFTPlan* FFTPlan, FFTAxis* axis, uint64_t axis_id, uint64_t axis_upload_id, uint64_t inverse);
- FFTResult AppendLine(FFTSpecializationConstantsLayout* sc);
- FFTResult MulComplex(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_2, const char* temp);
- FFTResult SubComplex(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_2);
- FFTResult AddComplex(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_2);
-FFTResult AddComplexInv(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_2);
-FFTResult FMAComplex(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_num, const char* in_2);
-FFTResult MulComplexNumber(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_num);
-FFTResult MovComplex(FFTSpecializationConstantsLayout* sc, const char* out, const char* in);
-FFTResult ShuffleComplex(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_2, const char* temp);
-FFTResult ShuffleComplexInv(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_2, const char* temp); 
-FFTResult DivComplexNumber(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_num);
-  FFTResult AddReal(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_2);
-  FFTResult MovReal(FFTSpecializationConstantsLayout* sc, const char* out, const char* in);
-  FFTResult ModReal(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_num);
-  FFTResult SubReal(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_2);
-  FFTResult MulReal(FFTSpecializationConstantsLayout* sc, const char* out, const char* in_1, const char* in_2);
-  FFTResult SharedStore(FFTSpecializationConstantsLayout* sc, const char* id, const char* in);
-  FFTResult SharedLoad(FFTSpecializationConstantsLayout* sc, const char* out, const char* id);
- FFTResult inlineRadixKernelFFT(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t radix, uint64_t stageSize, double stageAngle, char** regID);
-  FFTResult appendExtensions(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* floatTypeInputMemory, const char* floatTypeOutputMemory, const char* floatTypeKernelMemory);
-  FFTResult appendPushConstant(FFTSpecializationConstantsLayout* sc, const char* type, const char* name);
-  FFTResult appendConstant(FFTSpecializationConstantsLayout* sc, const char* type, const char* name, const char* defaultVal, const char* LFending);
-  FFTResult AppendLineFromInput(FFTSpecializationConstantsLayout* sc, const char* in);
-  FFTResult appendConstantsFFT(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType); 
-  FFTResult appendSinCos20(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType);
-  FFTResult appendConversion(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* floatTypeDifferent);
-  FFTResult appendPushConstantsFFT(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType);
-  FFTResult appendInputLayoutFFT(FFTSpecializationConstantsLayout* sc, uint64_t id, const char* floatTypeMemory, uint64_t inputType);
-  FFTResult appendOutputLayoutFFT(FFTSpecializationConstantsLayout* sc, uint64_t id, const char* floatTypeMemory, uint64_t outputType);
-  FFTResult appendLUTLayoutFFT(FFTSpecializationConstantsLayout* sc, uint64_t id, const char* floatType);
-  FFTResult appendSharedMemoryFFT(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t sharedType);
-  FFTResult appendInitialization(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t initType);
-  FFTResult appendZeropadStart(FFTSpecializationConstantsLayout* sc);
-  FFTResult appendZeropadEnd(FFTSpecializationConstantsLayout* sc);
-  FFTResult appendBarrierFFT(FFTSpecializationConstantsLayout* sc, uint64_t numTab);
-  FFTResult appendBoostThreadDataReorder(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t shuffleType, uint64_t start);
-  FFTResult appendRadixStageNonStrided(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix);
-  FFTResult appendRadixStageStrided(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix);
-  FFTResult appendRadixStage(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix, uint64_t shuffleType);
-  FFTResult appendRegisterBoostShuffle(FFTSpecializationConstantsLayout* sc, const char* floatType, uint64_t stageSize, uint64_t stageRadixPrev, uint64_t stageRadix, double stageAngle);
-  FFTResult appendRadixShuffleNonStrided(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix, uint64_t stageRadixNext);
-  FFTResult appendRadixShuffleStrided(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix, uint64_t stageRadixNext);
-  FFTResult appendRadixShuffle(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix, uint64_t stageRadixNext, uint64_t shuffleType);
-  FFTResult appendReorder4StepWrite(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t reorderType);
-  FFTResult indexInputFFT(FFTSpecializationConstantsLayout* sc, const char* uintType, uint64_t inputType, const char* index_x, const char* index_y, const char* coordinate, const char* batchID);
-  FFTResult indexOutputFFT(FFTSpecializationConstantsLayout* sc, const char* uintType, uint64_t outputType, const char* index_x, const char* index_y, const char* coordinate, const char* batchID);
-  FFTResult appendZeropadStartReadWriteStage(FFTSpecializationConstantsLayout* sc, uint64_t readStage);
-  FFTResult appendZeropadEndReadWriteStage(FFTSpecializationConstantsLayout* sc);
-  FFTResult appendReorder4StepRead(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* uintType, uint64_t reorderType);
- FFTResult appendReadDataFFT(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* floatTypeMemory, const char* uintType, uint64_t readType);
- FFTResult appendWriteDataFFT(FFTSpecializationConstantsLayout* sc, const char* floatType, const char* floatTypeMemory, const char* uintType, uint64_t writeType);
+ FFTResult FFTCheckBuffer(FFTApplication* app, FFTAxis* axis, uint64_t planStage, FFTLaunchParams* launchParams);
+ FFTResult FFTUpdateBuffer(FFTApplication* app, FFTPlan* FFTPlan, FFTAxis* axis, uint64_t axis_id, uint64_t axis_upload_id, uint64_t inverse);
+ FFTResult AppendLine(FFTLayout* lt);
+ FFTResult MulComplex(FFTLayout* lt, const char* out, const char* in_1, const char* in_2, const char* temp);
+ FFTResult SubComplex(FFTLayout* lt, const char* out, const char* in_1, const char* in_2);
+ FFTResult AddComplex(FFTLayout* lt, const char* out, const char* in_1, const char* in_2);
+FFTResult AddComplexInv(FFTLayout* lt, const char* out, const char* in_1, const char* in_2);
+FFTResult FMAComplex(FFTLayout* lt, const char* out, const char* in_1, const char* in_num, const char* in_2);
+FFTResult MulComplexNumber(FFTLayout* lt, const char* out, const char* in_1, const char* in_num);
+FFTResult MovComplex(FFTLayout* lt, const char* out, const char* in);
+FFTResult ShuffleComplex(FFTLayout* lt, const char* out, const char* in_1, const char* in_2, const char* temp);
+FFTResult ShuffleComplexInv(FFTLayout* lt, const char* out, const char* in_1, const char* in_2, const char* temp); 
+FFTResult DivComplexNumber(FFTLayout* lt, const char* out, const char* in_1, const char* in_num);
+  FFTResult AddReal(FFTLayout* lt, const char* out, const char* in_1, const char* in_2);
+  FFTResult MovReal(FFTLayout* lt, const char* out, const char* in);
+  FFTResult ModReal(FFTLayout* lt, const char* out, const char* in_1, const char* in_num);
+  FFTResult SubReal(FFTLayout* lt, const char* out, const char* in_1, const char* in_2);
+  FFTResult MulReal(FFTLayout* lt, const char* out, const char* in_1, const char* in_2);
+  FFTResult SharedStore(FFTLayout* lt, const char* id, const char* in);
+  FFTResult SharedLoad(FFTLayout* lt, const char* out, const char* id);
+ FFTResult inlineRadixKernelFFT(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t radix, uint64_t stageSize, double stageAngle, char** regID);
+  FFTResult appendExtensions(FFTLayout* lt, const char* floatType, const char* floatTypeInputMemory, const char* floatTypeOutputMemory, const char* floatTypeKernelMemory);
+  FFTResult appendPushConstant(FFTLayout* lt, const char* type, const char* name);
+  FFTResult appendConstant(FFTLayout* lt, const char* type, const char* name, const char* defaultVal, const char* LFending);
+  FFTResult AppendLineFromInput(FFTLayout* lt, const char* in);
+  FFTResult appendConstantsFFT(FFTLayout* lt, const char* floatType, const char* uintType); 
+  FFTResult appendSinCos20(FFTLayout* lt, const char* floatType, const char* uintType);
+  FFTResult appendConversion(FFTLayout* lt, const char* floatType, const char* floatTypeDifferent);
+  FFTResult appendPushConstantsFFT(FFTLayout* lt, const char* floatType, const char* uintType);
+  FFTResult appendInputLayoutFFT(FFTLayout* lt, uint64_t id, const char* floatTypeMemory, uint64_t inputType);
+  FFTResult appendOutputLayoutFFT(FFTLayout* lt, uint64_t id, const char* floatTypeMemory, uint64_t outputType);
+  FFTResult appendLUTLayoutFFT(FFTLayout* lt, uint64_t id, const char* floatType);
+  FFTResult appendSharedMemoryFFT(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t sharedType);
+  FFTResult appendInitialization(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t initType);
+  FFTResult appendBarrier(FFTLayout* lt, uint64_t numTab);
+  FFTResult threadDataOrder(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t shuffleType, uint64_t start);
+  FFTResult radixNonStrided(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix);
+  FFTResult radixStrided(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix);
+  FFTResult appendRadixStage(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix, uint64_t shuffleType);
+  FFTResult appendregAdShuffle(FFTLayout* lt, const char* floatType, uint64_t stageSize, uint64_t stageRadixPrev, uint64_t stageRadix, double stageAngle);
+  FFTResult appendRadixShuffleNonStrided(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix, uint64_t stageRadixNext);
+  FFTResult appendRadixShuffleStrided(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix, uint64_t stageRadixNext);
+  FFTResult appendRadixShuffle(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t stageSize, uint64_t stageSizeSum, double stageAngle, uint64_t stageRadix, uint64_t stageRadixNext, uint64_t shuffleType);
+  FFTResult appendReorder4StepWrite(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t reorderType);
+  FFTResult indexInputFFT(FFTLayout* lt, const char* uintType, uint64_t inputType, const char* index_x, const char* index_y, const char* coordinate, const char* batchID);
+  FFTResult indexOutputFFT(FFTLayout* lt, const char* uintType, uint64_t outputType, const char* index_x, const char* index_y, const char* coordinate, const char* batchID);
+  FFTResult appendReorder4StepRead(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t reorderType);
+ FFTResult appendReadDataFFT(FFTLayout* lt, const char* floatType, const char* floatTypeMemory, const char* uintType, uint64_t readType);
+ FFTResult appendWriteDataFFT(FFTLayout* lt, const char* floatType, const char* floatTypeMemory, const char* uintType, uint64_t writeType);
  FFTResult FFTScheduler(FFTApplication* app, FFTPlan* FFTPlan, uint64_t axis_id, uint64_t supportAxis);
  void deleteAxis(FFTApplication* app, FFTAxis* axis);
  void deleteFFT(FFTApplication* app);
- void freeShaderGenFFT(FFTSpecializationConstantsLayout* sc);
- FFTResult shaderGenFFT(char* output, FFTSpecializationConstantsLayout* sc, const char* floatType, const char* floatTypeInputMemory, const char* floatTypeOutputMemory, const char* floatTypeKernelMemory, const char* uintType, uint64_t type);
+ void freeShaderGenFFT(FFTLayout* lt);
+ FFTResult shaderGenFFT(char* output, FFTLayout* lt, const char* floatType, const char* floatTypeInputMemory, const char* floatTypeOutputMemory, const char* floatTypeKernelMemory, const char* uintType, uint64_t type);
  FFTResult FFTPlanAxis(FFTApplication* app, FFTPlan* FFTPlan, uint64_t axis_id, uint64_t axis_upload_id, uint64_t inverse);
  FFTResult initializeFFT(FFTApplication* app, FFTConfiguration inputLaunchConfiguration);
  FFTResult dispatchEnhanced(FFTApplication* app, FFTAxis* axis, uint64_t* dispatchBlock, FFTLaunchArgs* launchArgs);
