@@ -1350,8 +1350,6 @@ FFTResult appendSharedMemoryFFT(FFTLayout* lt, const char* floatType, const char
 FFTResult appendInitialization(FFTLayout* lt, const char* floatType, const char* uintType, uint64_t initType) {
 	FFTResult res = FFT_SUCCESS;
 	char vecType[30];
-
-
 	if (!strcmp(floatType, "double")) sprintf(vecType, "double2");
 
 	uint64_t threadStorage = lt->threadRegister * lt->regAd;
@@ -1362,10 +1360,6 @@ FFTResult appendInitialization(FFTLayout* lt, const char* floatType, const char*
 		res = AppendLine(lt);
 		if (res != FFT_SUCCESS) return res;
 	}
-	
-	//lt->tempLen = sprintf(lt->tempStr, "	uint dum=gl_LocalInvocationID.y;//gl_LocalInvocationID.x/gl_WorkGroupSize.x;\n");
-	//lt->tempLen = sprintf(lt->tempStr, "	dum=dum/gl_LocalInvocationID.x-1;\n");
-	//lt->tempLen = sprintf(lt->tempStr, "	dummy=dummy/gl_LocalInvocationID.x-1;\n");
 	lt->regIDs = (char**)malloc(sizeof(char*) * threadStorage);
 	if (!lt->regIDs) return FFT_ERROR_MALLOC_FAILED;
 	for (uint64_t i = 0; i < threadStorage; i++) {
